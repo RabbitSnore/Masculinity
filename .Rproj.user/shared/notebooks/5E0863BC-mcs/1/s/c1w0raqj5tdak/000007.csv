@@ -1,0 +1,8 @@
+"0","peer_desc <- mcs_peer %>%"
+"0","  group_by(masculinity) %>% "
+"0","  summarise("
+"0","    mean = mean(capital, na.rm = TRUE),"
+"0","    sd = sd(capital, na.rm = TRUE),"
+"0","    median = median(capital, na.rm = TRUE)"
+"0","  )"
+"0","knitr::kable(peer_desc)"

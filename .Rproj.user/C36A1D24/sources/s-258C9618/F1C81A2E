@@ -1,0 +1,29 @@
+{
+    "collab_server" : "",
+    "contents" : "",
+    "created" : 1544563891169.000,
+    "dirty" : false,
+    "encoding" : "",
+    "folds" : "",
+    "hash" : "0",
+    "id" : "F1C81A2E",
+    "lastKnownWriteTime" : 31525678432190511,
+    "last_content_update" : 1544563891169,
+    "path" : null,
+    "project_path" : null,
+    "properties" : {
+        "cacheKey" : "81A03205",
+        "caption" : "mcs_long",
+        "contentUrl" : "grid_resource/gridviewer.html?env=&obj=mcs_long&cache_key=81A03205",
+        "displayedObservations" : 3888,
+        "environment" : "",
+        "object" : "mcs_long",
+        "preview" : 0,
+        "totalObservations" : 3888,
+        "variables" : 10
+    },
+    "relative_order" : 3,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_dataframe"
+}

@@ -1,0 +1,24 @@
+{
+    "collab_server" : "",
+    "contents" : "",
+    "created" : 1544561614273.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "0",
+    "id" : "5F53DA1",
+    "lastKnownWriteTime" : 1544566937,
+    "last_content_update" : 1544566937200,
+    "path" : "~/Projects/Masculinity/mcs.Rmd",
+    "project_path" : "mcs.Rmd",
+    "properties" : {
+        "cursorPosition" : "10,15",
+        "last_setup_crc32" : "258C96186c4a66db",
+        "scrollLine" : "0",
+        "tempName" : "Untitled1"
+    },
+    "relative_order" : 1,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_markdown"
+}
