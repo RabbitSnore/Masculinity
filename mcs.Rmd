@@ -12,7 +12,7 @@ library(tidyverse)
 library(lme4)
 library(lmerTest)
 
-mcs <- read_csv("MCS_raw.csv")
+mcs <- read_csv("./data/MCS_raw.csv")
 
 mcs_long <- mcs %>% 
   gather(key = "key", value = "capital", names(mcs[7:78])) %>% 

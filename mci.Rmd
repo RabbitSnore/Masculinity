@@ -1,0 +1,64 @@
+---
+title: "Study 2 - Masculine Crime Inventory"
+author: "Timothy J. Luke & Pär Stern"
+date: "12 december 2018"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+
+library(tidyverse)
+
+mci <- read_csv("MCI_raw.csv")
+
+mci_long <- mci %>% 
+  gather(key = "crime", value = "manliness", names(mci[6:33]))
+
+```
+
+## Descriptives
+
+```{r}
+
+manly_table <- mci_long %>% 
+  group_by(crime) %>% 
+  summarise(
+    mean = mean(manliness, na.rm = TRUE),
+    sd = sd(manliness, na.rm = TRUE),
+    median = median(manliness, na.rm = TRUE)
+  )
+
+knitr::kable(manly_table)
+
+```
+
+```{r}
+
+manly_desc <- manly_table %>% 
+  summarise(
+    minimum = min(mean),
+    maximum = max(mean),
+    mean_of_means = mean(mean),
+    sd = sd(mean)
+  )
+
+knitr::kable(manly_desc)
+
+```
+
+```{r}
+
+ggplot(mci_long,
+       aes(
+         x = manliness
+       )) +
+  facet_wrap(~crime,
+             nrow = 8) +
+  geom_histogram(
+    binwidth = 1
+  ) +
+  theme_classic()
+
+```
+
