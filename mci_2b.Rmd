@@ -1,5 +1,5 @@
 ---
-title: "Study 2b - Masculine Crime Inventory (MCI-40"
+title: "Study 2b - Masculine Crime Inventory (MCI-40)"
 author: "Timothy J. Luke & Pär Stern"
 date: "15 december 2018"
 output: html_document
