@@ -1,0 +1,653 @@
+---
+title: "Study 1b - Masculine Capital Scale"
+author: "Timothy J. Luke & Pär Stern"
+date: "December 15, 2018"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+
+library(tidyverse)
+library(lme4)
+library(lmerTest)
+library(psych)
+
+mcs <- read_csv("./data/MCS_1b_raw.csv")
+
+mcs_smni <- mcs %>% 
+  mutate(
+    Winning4_R = case_when(
+      Winning4_R == 1 ~ 4,
+      Winning4_R == 2 ~ 3,
+      Winning4_R == 3 ~ 2,
+      Winning4_R == 4 ~ 1
+    ),
+    Emotion2_R = case_when(
+      Emotion2_R == 1 ~ 4,
+      Emotion2_R == 2 ~ 3,
+      Emotion2_R == 3 ~ 2,
+      Emotion2_R == 4 ~ 1
+    ),
+    Emotion5_R = case_when(
+      Emotion5_R == 1 ~ 4,
+      Emotion5_R == 2 ~ 3,
+      Emotion5_R == 3 ~ 2,
+      Emotion5_R == 4 ~ 1
+    ),
+    Risk4_R = case_when(
+      Risk4_R == 1 ~ 4,
+      Risk4_R == 2 ~ 3,
+      Risk4_R == 3 ~ 2,
+      Risk4_R == 4 ~ 1
+    ),
+    Risk5_R = case_when(
+      Risk5_R == 1 ~ 4,
+      Risk5_R == 2 ~ 3,
+      Risk5_R == 3 ~ 2,
+      Risk5_R == 4 ~ 1
+    ),
+    Violence2_R = case_when(
+      Violence2_R == 1 ~ 4,
+      Violence2_R == 2 ~ 3,
+      Violence2_R == 3 ~ 2,
+      Violence2_R == 4 ~ 1
+    ),
+    Violence5_R = case_when(
+      Violence5_R == 1 ~ 4,
+      Violence5_R == 2 ~ 3,
+      Violence5_R == 3 ~ 2,
+      Violence5_R == 4 ~ 1
+    ),
+    Playboy4_R = case_when(
+      Playboy4_R == 1 ~ 4,
+      Playboy4_R == 2 ~ 3,
+      Playboy4_R == 3 ~ 2,
+      Playboy4_R == 4 ~ 1
+    ),
+    Playboy5_R = case_when(
+      Playboy5_R == 1 ~ 4,
+      Playboy5_R == 2 ~ 3,
+      Playboy5_R == 3 ~ 2,
+      Playboy5_R == 4 ~ 1
+    ),
+    Selfreliance5_R = case_when(
+      Selfreliance5_R == 1 ~ 4,
+      Selfreliance5_R == 2 ~ 3,
+      Selfreliance5_R == 3 ~ 2,
+      Selfreliance5_R == 4 ~ 1
+    ),
+    Hetero5_R = case_when(
+      Hetero5_R == 1 ~ 4,
+      Hetero5_R == 2 ~ 3,
+      Hetero5_R == 3 ~ 2,
+      Hetero5_R == 4 ~ 1
+    ),
+    WorkPrimacy1_R = case_when(
+      WorkPrimacy1_R == 1 ~ 4,
+      WorkPrimacy1_R == 2 ~ 3,
+      WorkPrimacy1_R == 3 ~ 2,
+      WorkPrimacy1_R == 4 ~ 1
+    ),
+    WorkPrimacy3_R = case_when(
+      WorkPrimacy3_R == 1 ~ 4,
+      WorkPrimacy3_R == 2 ~ 3,
+      WorkPrimacy3_R == 3 ~ 2,
+      WorkPrimacy3_R == 4 ~ 1
+    ),
+    PoW4_R = case_when(
+      PoW4_R == 1 ~ 4,
+      PoW4_R == 2 ~ 3,
+      PoW4_R == 3 ~ 2,
+      PoW4_R == 4 ~ 1
+    ),
+    winning = (Winning1 + Winning2 + Winning3 + Winning4_R + Winning5)/5,
+    emotion = (Emotion1 + Emotion2_R + Emotion3 + Emotion4 + Emotion5_R)/5,
+    risk = (Risk1 + Risk2 + Risk3 + Risk4_R + Risk5_R)/5,
+    violence = (Violence1 + Violence2_R + Violence3 + Violence4 + Violence5_R)/5,
+    playboy = (Playboy1 + Playboy2 + Playboy3 + Playboy4_R + Playboy5_R)/5,
+    self_reliance = (Selfreliance1 + Selfreliance2 + Selfreliance3 + Selfreliance4 + Selfreliance5_R)/5,
+    hetero = (Hetero1 + Hetero2 + Hetero3 + Hetero4 + Hetero5_R)/5,
+    work_primacy = (WorkPrimacy1_R + WorkPrimacy2 + WorkPrimacy3_R + WorkPrimacy4 + WorkPrimacy5)/5,
+    pow = (PoW1 + PoW2 + PoW3 + PoW4_R + PoW5)/5,
+    smni = (winning + emotion + risk + violence + playboy + self_reliance + hetero + work_primacy + pow)/9
+  )
+
+mcs_long <- mcs_smni %>% 
+  gather(key = "key", value = "capital", names(mcs[52:123])) %>% 
+  extract(key, c("story", "masculinity", "rating_type"), "(.*)_(.*)_(.*)") %>% 
+  filter(!is.na(capital)) %>% 
+  mutate(
+    rating_type = case_when(
+      rating_type == 1 ~ "personal",
+      rating_type == 2 ~ "peer",
+      rating_type == 3 ~ "society"
+    )
+  )
+
+mcs_personal <- mcs_long %>% 
+  filter(rating_type == "personal")
+
+mcs_peer <- mcs_long %>% 
+  filter(rating_type == "peer")
+
+mcs_society <- mcs_long %>% 
+  filter(rating_type == "society")
+
+```
+
+## Sample information
+
+```{r}
+mcs %>%
+  summarise(
+    Male = sum(gender == "Male"),
+    Female = sum(gender == "Female"),
+    "Mean Age" = round(mean(age, na.rm = TRUE), 2),
+    "SD Age" = round(sd(age, na.rm = TRUE), 2),
+    "Median Age" = round(median(age, na.rm = TRUE), 2)
+  ) %>% 
+  knitr::kable()
+```
+
+
+## Visualizations and descriptives
+
+### Peer ratings
+
+```{r descriptives}
+peer_desc <- mcs_peer %>%
+  group_by(masculinity) %>% 
+  summarise(
+    mean = mean(capital, na.rm = TRUE),
+    sd = sd(capital, na.rm = TRUE),
+    median = median(capital, na.rm = TRUE)
+  )
+
+knitr::kable(peer_desc)
+```
+
+```{r hist}
+
+ggplot(mcs_peer,
+       aes(
+         x = capital
+       )) +
+  facet_wrap(~ masculinity) +
+  geom_histogram(
+    binwidth = 1
+  ) +
+  geom_vline(data = peer_desc,
+             aes(
+               xintercept = mean
+             )) +
+  geom_vline(
+    xintercept = 5,
+    linetype = "dashed"
+  ) +
+  theme_classic()
+
+```
+
+```{r hist gender 1}
+
+peer_desc_gender <- mcs_peer %>%
+  group_by(masculinity, gender) %>% 
+  summarise(
+    mean = mean(capital, na.rm = TRUE),
+    sd = sd(capital, na.rm = TRUE),
+    median = median(capital, na.rm = TRUE)
+  )
+
+ggplot(mcs_peer,
+       aes(
+         x = capital
+       )) +
+  facet_grid(gender ~ masculinity) +
+  geom_histogram(
+    binwidth = 1
+  ) +
+  geom_vline(data = peer_desc_gender,
+             aes(
+               xintercept = mean
+             )) +
+  geom_vline(
+    xintercept = 5,
+    linetype = "dashed"
+  ) +
+  theme_classic()
+
+```
+
+### Personal ratings
+
+```{r descriptives 2}
+personal_desc <- mcs_personal %>%
+  group_by(masculinity) %>% 
+  summarise(
+    mean = mean(capital, na.rm = TRUE),
+    sd = sd(capital, na.rm = TRUE),
+    median = median(capital, na.rm = TRUE)
+  )
+
+knitr::kable(personal_desc)
+```
+
+```{r hist 2}
+
+ggplot(mcs_personal,
+       aes(
+         x = capital
+       )) +
+  facet_wrap(~ masculinity) +
+  geom_histogram(
+    binwidth = 1
+  ) +
+  geom_vline(data = personal_desc,
+             aes(
+               xintercept = mean
+             )) +
+  geom_vline(
+    xintercept = 5,
+    linetype = "dashed"
+  ) +
+  theme_classic()
+
+```
+
+```{r hist gender 2}
+
+personal_desc_gender <- mcs_personal %>%
+  group_by(masculinity, gender) %>% 
+  summarise(
+    mean = mean(capital, na.rm = TRUE),
+    sd = sd(capital, na.rm = TRUE),
+    median = median(capital, na.rm = TRUE)
+  )
+
+ggplot(mcs_personal,
+       aes(
+         x = capital
+       )) +
+  facet_grid(gender ~ masculinity) +
+  geom_histogram(
+    binwidth = 1
+  ) +
+  geom_vline(data = personal_desc_gender,
+             aes(
+               xintercept = mean
+             )) +
+  geom_vline(
+    xintercept = 5,
+    linetype = "dashed"
+  ) +
+  theme_classic()
+
+```
+
+### Society ratings
+
+```{r descriptives 3}
+society_desc <- mcs_society %>%
+  group_by(masculinity) %>% 
+  summarise(
+    mean = mean(capital, na.rm = TRUE),
+    sd = sd(capital, na.rm = TRUE),
+    median = median(capital, na.rm = TRUE)
+  )
+
+knitr::kable(society_desc)
+```
+
+```{r hist 3}
+
+ggplot(mcs_society,
+       aes(
+         x = capital
+       )) +
+  facet_wrap(~ masculinity) +
+  geom_histogram(
+    binwidth = 1
+  ) +
+  geom_vline(data = society_desc,
+             aes(
+               xintercept = mean
+             )) +
+  geom_vline(
+    xintercept = 5,
+    linetype = "dashed"
+  ) +
+  theme_classic()
+
+```
+
+```{r hist gender 3}
+
+society_desc_gender <- mcs_society %>%
+  group_by(masculinity, gender) %>% 
+  summarise(
+    mean = mean(capital, na.rm = TRUE),
+    sd = sd(capital, na.rm = TRUE),
+    median = median(capital, na.rm = TRUE)
+  )
+
+ggplot(mcs_society,
+       aes(
+         x = capital
+       )) +
+  facet_grid(gender ~ masculinity) +
+  geom_histogram(
+    binwidth = 1
+  ) +
+  geom_vline(data = society_desc_gender,
+             aes(
+               xintercept = mean
+             )) +
+  geom_vline(
+    xintercept = 5,
+    linetype = "dashed"
+  ) +
+  theme_classic()
+
+```
+
+## SMNI scale diagnostics
+
+```{r}
+
+alpha(mcs_smni[7:11])
+
+```
+
+```{r}
+
+alpha(mcs_smni[12:16])
+
+```
+
+```{r}
+
+alpha(mcs_smni[17:21])
+
+```
+
+```{r}
+
+alpha(mcs_smni[22:26])
+
+```
+
+```{r}
+
+alpha(mcs_smni[27:31])
+
+```
+
+```{r}
+
+alpha(mcs_smni[32:36])
+
+```
+
+```{r}
+
+alpha(mcs_smni[37:41])
+
+```
+
+```{r}
+
+alpha(mcs_smni[42:46])
+
+```
+
+```{r}
+
+alpha(mcs_smni[47:51])
+
+```
+
+## Hypothesis test
+
+```{r mlm 1}
+
+mcs_peer$masculinity <- factor(mcs_peer$masculinity, levels = c("Neutral", "Masculine", "Non-masculine"))
+
+peer_model <- lmer(capital ~ masculinity + smni + masculinity*smni + (1|ID) + (1|story), data = mcs_peer)
+
+summary(peer_model)
+
+```
+
+### Factor analysis
+
+```{r}
+factanal(~., data = mcs_smni[7:51], factors = 9, na.action = na.exclude)
+```
+
+
+## Exploratory models
+
+### Personal ratings
+
+```{r mlm 2}
+
+mcs_personal$masculinity <- factor(mcs_personal$masculinity, levels = c("Neutral", "Masculine", "Non-masculine"))
+
+personal_model <- lmer(capital ~ masculinity + smni + masculinity*smni +  (1|ID) + (1|story), data = mcs_personal)
+
+summary(personal_model)
+
+```
+
+### Society ratings
+
+```{r mlm 3}
+
+mcs_society$masculinity <- factor(mcs_society$masculinity, levels = c("Neutral", "Masculine", "Non-masculine"))
+
+society_model <- lmer(capital ~ masculinity + smni + masculinity*smni + (1|ID) + (1|story), data = mcs_society)
+
+summary(society_model)
+
+```
+
+### Models without SMNI
+
+#### Peer
+
+```{r mlm 4}
+
+mcs_peer$masculinity <- factor(mcs_peer$masculinity, levels = c("Neutral", "Masculine", "Non-masculine"))
+
+peer_model_2 <- lmer(capital ~ masculinity + (1|ID) + (1|story), data = mcs_peer)
+
+summary(peer_model_2)
+
+```
+
+#### Personal
+
+```{r mlm 5}
+
+mcs_peer$masculinity <- factor(mcs_peer$masculinity, levels = c("Neutral", "Masculine", "Non-masculine"))
+
+personal_model_2 <- lmer(capital ~ masculinity + (1|ID) + (1|story), data = mcs_personal)
+
+summary(personal_model_2)
+
+```
+
+#### Society
+
+```{r mlm 6}
+
+mcs_peer$masculinity <- factor(mcs_peer$masculinity, levels = c("Neutral", "Masculine", "Non-masculine"))
+
+society_model_2 <- lmer(capital ~ masculinity + (1|ID) + (1|story), data = mcs_society)
+
+summary(society_model_2)
+
+```
+
+#### Visualizations
+
+```{r}
+
+ggplot(mcs_long,
+       aes(
+        y = capital,
+        x = smni
+       )) +
+  facet_wrap(~ rating_type) +
+  geom_point() +
+  geom_smooth(
+    method = "lm"
+  ) +
+  theme_classic()
+
+```
+
+```{r}
+
+ggplot(mcs_long,
+       aes(
+        y = capital,
+        x = winning
+       )) +
+  facet_wrap(~ rating_type) +
+  geom_point() +
+  geom_smooth(
+    method = "lm"
+  ) +
+  theme_classic()
+
+```
+
+```{r}
+
+ggplot(mcs_long,
+       aes(
+        y = capital,
+        x = emotion
+       )) +
+  facet_wrap(~ rating_type) +
+  geom_point() +
+  geom_smooth(
+    method = "lm"
+  ) +
+  theme_classic()
+
+```
+
+```{r}
+
+ggplot(mcs_long,
+       aes(
+        y = capital,
+        x = risk
+       )) +
+  facet_wrap(~ rating_type) +
+  geom_point() +
+  geom_smooth(
+    method = "lm"
+  ) +
+  theme_classic()
+
+```
+
+```{r}
+
+ggplot(mcs_long,
+       aes(
+        y = capital,
+        x = violence
+       )) +
+  facet_wrap(~ rating_type) +
+  geom_point() +
+  geom_smooth(
+    method = "lm"
+  ) +
+  theme_classic()
+
+```
+
+```{r}
+
+ggplot(mcs_long,
+       aes(
+        y = capital,
+        x = playboy
+       )) +
+  facet_wrap(~ rating_type) +
+  geom_point() +
+  geom_smooth(
+    method = "lm"
+  ) +
+  theme_classic()
+
+```
+
+```{r}
+
+ggplot(mcs_long,
+       aes(
+        y = capital,
+        x = self_reliance
+       )) +
+  facet_wrap(~ rating_type) +
+  geom_point() +
+  geom_smooth(
+    method = "lm"
+  ) +
+  theme_classic()
+
+```
+
+```{r}
+
+ggplot(mcs_long,
+       aes(
+        y = capital,
+        x = hetero
+       )) +
+  facet_wrap(~ rating_type) +
+  geom_point() +
+  geom_smooth(
+    method = "lm"
+  ) +
+  theme_classic()
+
+```
+
+```{r}
+
+ggplot(mcs_long,
+       aes(
+        y = capital,
+        x = work_primacy
+       )) +
+  facet_wrap(~ rating_type) +
+  geom_point() +
+  geom_smooth(
+    method = "lm"
+  ) +
+  theme_classic()
+
+```
+
+```{r}
+
+ggplot(mcs_long,
+       aes(
+        y = capital,
+        x = pow
+       )) +
+  facet_wrap(~ rating_type) +
+  geom_point() +
+  geom_smooth(
+    method = "lm"
+  ) +
+  theme_classic()
+
+```

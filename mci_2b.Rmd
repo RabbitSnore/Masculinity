@@ -1,7 +1,7 @@
 ---
-title: "Study 2 - Masculine Crime Inventory"
+title: "Study 2b - Masculine Crime Inventory (MCI-40"
 author: "Timothy J. Luke & Pär Stern"
-date: "12 december 2018"
+date: "15 december 2018"
 output: html_document
 ---
 
@@ -10,10 +10,10 @@ knitr::opts_chunk$set(echo = FALSE)
 
 library(tidyverse)
 
-mci <- read_csv("./data/MCI_raw.csv")
+mci <- read_csv("./data/MCI_40_2b_raw.csv")
 
 mci_long <- mci %>% 
-  gather(key = "crime", value = "manliness", names(mci[6:33]))
+  gather(key = "crime", value = "manliness", names(mci[6:45]))
 
 ```
 
@@ -54,7 +54,7 @@ ggplot(mci_long,
          x = manliness
        )) +
   facet_wrap(~crime,
-             nrow = 8) +
+             nrow = 12) +
   geom_histogram(
     binwidth = 1
   ) +
