@@ -1,0 +1,227 @@
+---
+title: "Study 3 - Masculine Crime Capital Scale (MCCS)"
+author: "Timothy J. Luke & Pär Stern"
+date: "December 19, 2018"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+
+library(tidyverse)
+library(lme4)
+library(lmerTest)
+
+mccs <- read_csv("./data/Study3_SMNI_MCCS_raw.csv")
+
+mccs <- mccs %>% 
+  mutate(
+    Winning4_R = case_when(
+      Winning4_R == 1 ~ 4,
+      Winning4_R == 2 ~ 3,
+      Winning4_R == 3 ~ 2,
+      Winning4_R == 4 ~ 1
+    ),
+    Emotion2_R = case_when(
+      Emotion2_R == 1 ~ 4,
+      Emotion2_R == 2 ~ 3,
+      Emotion2_R == 3 ~ 2,
+      Emotion2_R == 4 ~ 1
+    ),
+    Emotion5_R = case_when(
+      Emotion5_R == 1 ~ 4,
+      Emotion5_R == 2 ~ 3,
+      Emotion5_R == 3 ~ 2,
+      Emotion5_R == 4 ~ 1
+    ),
+    Risk4_R = case_when(
+      Risk4_R == 1 ~ 4,
+      Risk4_R == 2 ~ 3,
+      Risk4_R == 3 ~ 2,
+      Risk4_R == 4 ~ 1
+    ),
+    Risk5_R = case_when(
+      Risk5_R == 1 ~ 4,
+      Risk5_R == 2 ~ 3,
+      Risk5_R == 3 ~ 2,
+      Risk5_R == 4 ~ 1
+    ),
+    Violence2_R = case_when(
+      Violence2_R == 1 ~ 4,
+      Violence2_R == 2 ~ 3,
+      Violence2_R == 3 ~ 2,
+      Violence2_R == 4 ~ 1
+    ),
+    Violence5_R = case_when(
+      Violence5_R == 1 ~ 4,
+      Violence5_R == 2 ~ 3,
+      Violence5_R == 3 ~ 2,
+      Violence5_R == 4 ~ 1
+    ),
+    Playboy4_R = case_when(
+      Playboy4_R == 1 ~ 4,
+      Playboy4_R == 2 ~ 3,
+      Playboy4_R == 3 ~ 2,
+      Playboy4_R == 4 ~ 1
+    ),
+    Playboy5_R = case_when(
+      Playboy5_R == 1 ~ 4,
+      Playboy5_R == 2 ~ 3,
+      Playboy5_R == 3 ~ 2,
+      Playboy5_R == 4 ~ 1
+    ),
+    SelfReliance5_R = case_when(
+      SelfReliance5_R == 1 ~ 4,
+      SelfReliance5_R == 2 ~ 3,
+      SelfReliance5_R == 3 ~ 2,
+      SelfReliance5_R == 4 ~ 1
+    ),
+    Hetero5_R = case_when(
+      Hetero5_R == 1 ~ 4,
+      Hetero5_R == 2 ~ 3,
+      Hetero5_R == 3 ~ 2,
+      Hetero5_R == 4 ~ 1
+    ),
+    WorkPrimacy1_R = case_when(
+      WorkPrimacy1_R == 1 ~ 4,
+      WorkPrimacy1_R == 2 ~ 3,
+      WorkPrimacy1_R == 3 ~ 2,
+      WorkPrimacy1_R == 4 ~ 1
+    ),
+    WorkPrimacy3_R = case_when(
+      WorkPrimacy3_R == 1 ~ 4,
+      WorkPrimacy3_R == 2 ~ 3,
+      WorkPrimacy3_R == 3 ~ 2,
+      WorkPrimacy3_R == 4 ~ 1
+    ),
+    PoW4_R = case_when(
+      PoW4_R == 1 ~ 4,
+      PoW4_R == 2 ~ 3,
+      PoW4_R == 3 ~ 2,
+      PoW4_R == 4 ~ 1
+    ),
+    winning = (Winning1 + Winning2 + Winning3 + Winning4_R + Winning5)/5,
+    emotion = (Emotion1 + Emotion2_R + Emotion3 + Emotion4 + Emotion5_R)/5,
+    risk = (Risk1 + Risk2 + Risk3 + Risk4_R + Risk5_R)/5,
+    violence = (Violence1 + Violence2_R + Violence3 + Violence4 + Violence5_R)/5,
+    playboy = (Playboy1 + Playboy2 + Playboy3 + Playboy4_R + Playboy5_R)/5,
+    self_reliance = (SelfReliance1 + SelfReliance2 + SelfReliance3 + SelfReliance4 + SelfReliance5_R)/5,
+    hetero = (Hetero1 + Hetero2 + Hetero3 + Hetero4 + Hetero5_R)/5,
+    work_primacy = (WorkPrimacy1_R + WorkPrimacy2 + WorkPrimacy3_R + WorkPrimacy4 + WorkPrimacy5)/5,
+    pow = (PoW1 + PoW2 + PoW3 + PoW4_R + PoW5)/5,
+    smni = (winning + emotion + risk + violence + playboy + self_reliance + hetero + work_primacy + pow)/9
+  )
+
+mccs_long <- mccs %>%
+  gather(key = "key", value = "capital", names(mccs[53:168])) %>% 
+  extract(key, c("crime", "rating_type"), "(.*)_(.*)") %>% 
+  filter(!is.na(capital)) %>% 
+  mutate(
+    rating_type = case_when(
+      rating_type == 1 ~ "personal",
+      rating_type == 2 ~ "peer",
+      rating_type == 3 ~ "society"
+    )
+  )
+
+mci_40 <- read_csv("./data/MCI_40_mean_ratings.csv") %>% 
+  mutate(
+    crime_masculinity = mean
+  )
+
+mci_vals <- mci_40 %>% 
+  select(crime, crime_masculinity)
+
+mccs_long <- mccs_long %>% 
+  left_join(mci_vals, by = "crime")
+
+mccs_personal <- mccs_long %>% 
+  filter(rating_type == "personal")
+
+mccs_peer <- mccs_long %>% 
+  filter(rating_type == "peer")
+
+mccs_society <- mccs_long %>% 
+  filter(rating_type == "society")
+
+```
+
+## Descriptives
+
+### Sample information
+
+```{r}
+mccs %>%
+  summarise(
+    Male = sum(gender == "Male"),
+    Female = sum(gender == "Female"),
+    "Mean Age" = round(mean(age, na.rm = TRUE), 2),
+    "SD Age" = round(sd(age, na.rm = TRUE), 2),
+    "Median Age" = round(median(age, na.rm = TRUE), 2)
+  ) %>% 
+  knitr::kable()
+```
+
+### Average captial ratings
+
+```{r}
+
+capital_table <- mccs_long %>% 
+  group_by(rating_type) %>% 
+  summarise(
+    mean = mean(capital, na.rm = TRUE),
+    sd = sd(capital, na.rm = TRUE)
+  )
+
+
+knitr::kable(capital_table)
+```
+
+
+## Hypothesis test
+
+```{r mlm 1}
+
+peer_model <- lmer(capital ~ crime_masculinity + scale(smni, scale = FALSE)  + crime_masculinity*scale(smni, scale = FALSE) + (1|ID), data = mccs_peer)
+
+summary(peer_model)
+
+```
+
+```{r mlm 2}
+
+peer_model_2 <- lmer(capital ~ crime_masculinity + (1|ID), data = mccs_peer)
+
+summary(peer_model_2)
+
+```
+
+## Exploratory models
+
+### Personal ratings
+
+```{r}
+
+personal_model <- lmer(capital ~ scale(crime_masculinity, scale = FALSE) + scale(smni, scale = FALSE) + scale(crime_masculinity, scale = FALSE)*scale(smni, scale = FALSE) + (1|ID), data = mccs_personal)
+
+summary(personal_model)
+
+```
+
+### Society ratings
+
+```{r}
+
+society_model <- lmer(capital ~ scale(crime_masculinity, scale = FALSE) + scale(smni, scale = FALSE) + scale(crime_masculinity, scale = FALSE)*scale(smni, scale = FALSE) + (1|ID), data = mccs_society)
+
+summary(society_model)
+
+```
+
+```{r}
+
+society_model_2 <- lmer(capital ~ scale(crime_masculinity, scale = FALSE) + scale(smni, scale = FALSE) + (1|ID), data = mccs_society)
+
+summary(society_model_2)
+
+```
