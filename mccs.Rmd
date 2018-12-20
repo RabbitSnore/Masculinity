@@ -133,7 +133,11 @@ mci_vals <- mci_40 %>%
   select(crime, crime_masculinity)
 
 mccs_long <- mccs_long %>% 
-  left_join(mci_vals, by = "crime")
+  left_join(mci_vals, by = "crime") %>% 
+  mutate(
+    crime_masculinity_mc = scale(crime_masculinity, scale = FALSE),
+    smni_mc = scale(smni, scale = FALSE)
+  )
 
 mccs_personal <- mccs_long %>% 
   filter(rating_type == "personal")
@@ -177,22 +181,27 @@ capital_table <- mccs_long %>%
 knitr::kable(capital_table)
 ```
 
+### Average SMNI scores
+
+```{r}
+
+smni_table <- mccs %>% 
+  summarise(
+    mean = mean(smni, na.rm = TRUE),
+    sd = sd(smni, na.rm = TRUE)
+  )
+
+
+knitr::kable(smni_table)
+```
 
 ## Hypothesis test
 
 ```{r mlm 1}
 
-peer_model <- lmer(capital ~ crime_masculinity + scale(smni, scale = FALSE)  + crime_masculinity*scale(smni, scale = FALSE) + (1|ID), data = mccs_peer)
+peer_model <- lmer(capital ~ crime_masculinity_mc + smni_mc  + crime_masculinity_mc*smni_mc + (1|ID), data = mccs_peer)
 
 summary(peer_model)
-
-```
-
-```{r mlm 2}
-
-peer_model_2 <- lmer(capital ~ crime_masculinity + (1|ID), data = mccs_peer)
-
-summary(peer_model_2)
 
 ```
 
@@ -202,7 +211,7 @@ summary(peer_model_2)
 
 ```{r}
 
-personal_model <- lmer(capital ~ scale(crime_masculinity, scale = FALSE) + scale(smni, scale = FALSE) + scale(crime_masculinity, scale = FALSE)*scale(smni, scale = FALSE) + (1|ID), data = mccs_personal)
+personal_model <- lmer(capital ~ crime_masculinity_mc + smni_mc + crime_masculinity_mc*smni_mc + (1|ID), data = mccs_personal)
 
 summary(personal_model)
 
@@ -212,16 +221,70 @@ summary(personal_model)
 
 ```{r}
 
-society_model <- lmer(capital ~ scale(crime_masculinity, scale = FALSE) + scale(smni, scale = FALSE) + scale(crime_masculinity, scale = FALSE)*scale(smni, scale = FALSE) + (1|ID), data = mccs_society)
+society_model <- lmer(capital ~ crime_masculinity_mc + smni_mc + crime_masculinity_mc*smni_mc + (1|ID), data = mccs_society)
 
 summary(society_model)
 
 ```
 
+## SMNI scale diagnostics
+
 ```{r}
 
-society_model_2 <- lmer(capital ~ scale(crime_masculinity, scale = FALSE) + scale(smni, scale = FALSE) + (1|ID), data = mccs_society)
+psych::alpha(mccs[8:12])
 
-summary(society_model_2)
+```
 
+```{r}
+
+psych::alpha(mccs[13:17])
+
+```
+
+```{r}
+
+psych::alpha(mccs[18:22])
+
+```
+
+```{r}
+
+psych::alpha(mccs[23:27])
+
+```
+
+```{r}
+
+psych::alpha(mccs[28:32])
+
+```
+
+```{r}
+
+psych::alpha(mccs[33:37])
+
+```
+
+```{r}
+
+psych::alpha(mccs[38:42])
+
+```
+
+```{r}
+
+psych::alpha(mccs[43:47])
+
+```
+
+```{r}
+
+psych::alpha(mccs[48:52])
+
+```
+
+### Factor analysis
+
+```{r}
+factanal(~., data = mccs[8:52], factors = 9, na.action = na.exclude)
 ```
