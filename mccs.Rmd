@@ -11,6 +11,7 @@ knitr::opts_chunk$set(echo = FALSE)
 library(tidyverse)
 library(lme4)
 library(lmerTest)
+library(broom)
 
 mccs <- read_csv("./data/Study3_SMNI_MCCS_raw.csv")
 
@@ -165,6 +166,19 @@ mccs %>%
   ) %>% 
   knitr::kable()
 ```
+
+```{r}
+race_table <- table(mccs$ethnicty) %>% 
+  broom::tidy() %>% 
+  rename(
+    Ethnicity = Var1,
+    Frequency = n
+  ) %>% 
+  arrange(desc(Frequency))
+
+knitr::kable(race_table)
+```
+
 
 ### Average captial ratings
 

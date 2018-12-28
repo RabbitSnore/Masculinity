@@ -17,6 +17,32 @@ mci_long <- mci %>%
 
 ```
 
+## Sample information
+
+```{r}
+mci %>%
+  summarise(
+    Male = sum(gender == "Male"),
+    Female = sum(gender == "Female"),
+    "Mean Age" = round(mean(age, na.rm = TRUE), 2),
+    "SD Age" = round(sd(age, na.rm = TRUE), 2),
+    "Median Age" = round(median(age, na.rm = TRUE), 2)
+  ) %>% 
+  knitr::kable()
+```
+
+```{r}
+race_table <- table(mci$ethnicity) %>% 
+  broom::tidy() %>% 
+  rename(
+    Ethnicity = Var1,
+    Frequency = n
+  ) %>% 
+  arrange(desc(Frequency))
+
+knitr::kable(race_table)
+```
+
 ## Descriptives
 
 ```{r}

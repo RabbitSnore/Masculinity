@@ -51,6 +51,17 @@ mcs %>%
   knitr::kable()
 ```
 
+```{r}
+race_table <- table(mcs$ethnicity) %>% 
+  broom::tidy() %>% 
+  rename(
+    Ethnicity = Var1,
+    Frequency = n
+  ) %>% 
+  arrange(desc(Frequency))
+
+knitr::kable(race_table)
+```
 
 ## Visualizations and descriptives
 
