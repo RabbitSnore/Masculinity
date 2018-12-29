@@ -12,6 +12,7 @@ library(tidyverse)
 library(lme4)
 library(lmerTest)
 library(broom)
+library(remef)
 
 mccs <- read_csv("./data/Study3_SMNI_MCCS_raw.csv")
 
@@ -219,6 +220,67 @@ summary(peer_model)
 
 ```
 
+### Visualizations
+
+#### Effect of crime masculinity on social capital (other effects partialed out)
+```{r}
+partial_capital <- remef(peer_model, fix = c("smni_mc", "crime_masculinity_mc:smni_mc"), ran = "all")
+
+mccs_peer %>% 
+  filter(!is.na(smni)) %>% 
+  ggplot(.,
+         aes(
+           y = partial_capital,
+           x = crime_masculinity_mc 
+         )) +
+  geom_point(
+    alpha = .3
+  ) +
+  geom_smooth(
+    method = "lm",
+    color = "red"
+  ) +
+  labs(
+    x = "Crime masculinity (MCI-40 ratings, mean centered)",
+    y = "Social capital (partial residuals)"
+    ) +
+  theme_classic()
+
+partial_capital_2 <- remef(peer_model, fix = c("crime_masculinity_mc", "crime_masculinity_mc:smni_mc"), ran = "all")
+```
+
+#### Effect of SMNI on social capital (other effects partialed out)
+```{r}
+mccs_peer %>% 
+  filter(!is.na(smni_mc)) %>%
+  ggplot(.,
+         aes(
+           y = partial_capital_2,
+           x = smni_mc 
+         )) +
+  geom_point(
+    alpha = .3
+  ) +
+  geom_smooth(
+    method = "lm",
+    color = "red"
+  ) +
+  labs(
+    x = "Subscription to masculine norms (mean centered)",
+    y = "Social capital (partial residuals)"
+  ) +
+  theme_classic()
+```
+
+### Supplmental model (outlier SMNI values removed)
+
+```{r}
+peer_model_no_outliers <- lmer(capital ~ crime_masculinity_mc + smni_mc  + crime_masculinity_mc*smni_mc + (1|ID), data = filter(mccs_peer, smni_mc < 1))
+
+summary(peer_model_no_outliers)
+```
+
+
 ## Exploratory models
 
 ### Personal ratings
@@ -240,6 +302,15 @@ society_model <- lmer(capital ~ crime_masculinity_mc + smni_mc + crime_masculini
 summary(society_model)
 
 ```
+
+### Comprehensive model
+
+```{r}
+comp_model <- lmer(capital ~ crime_masculinity_mc + smni_mc + rating_type + rating_type*crime_masculinity_mc + smni_mc*rating_type + crime_masculinity_mc*smni_mc + crime_masculinity_mc*smni_mc*rating_type +(1|ID), data = mccs_long)
+
+summary(comp_model)
+```
+
 
 ## SMNI scale diagnostics
 
