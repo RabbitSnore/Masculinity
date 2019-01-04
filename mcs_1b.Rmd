@@ -122,7 +122,8 @@ mcs_long <- mcs_smni %>%
       rating_type == 1 ~ "personal",
       rating_type == 2 ~ "peer",
       rating_type == 3 ~ "society"
-    )
+    ), 
+    smni_mc = scale(smni, scale = FALSE)
   )
 
 mcs_personal <- mcs_long %>% 
@@ -362,6 +363,18 @@ ggplot(mcs_society,
 
 ```
 
+## Hypothesis test
+
+```{r mlm 1}
+
+mcs_peer$masculinity <- factor(mcs_peer$masculinity, levels = c("Neutral", "Masculine", "Non-masculine"))
+
+peer_model <- lmer(capital ~ masculinity + smni_mc + masculinity*smni_mc + (1|ID) + (1|story), data = mcs_peer)
+
+summary(peer_model)
+
+```
+
 ## SMNI scale diagnostics
 
 ```{r}
@@ -418,18 +431,6 @@ alpha(mcs_smni[47:51])
 
 ```
 
-## Hypothesis test
-
-```{r mlm 1}
-
-mcs_peer$masculinity <- factor(mcs_peer$masculinity, levels = c("Neutral", "Masculine", "Non-masculine"))
-
-peer_model <- lmer(capital ~ masculinity + smni + masculinity*smni + (1|ID) + (1|story), data = mcs_peer)
-
-summary(peer_model)
-
-```
-
 ### Factor analysis
 
 ```{r}
@@ -445,7 +446,7 @@ factanal(~., data = mcs_smni[7:51], factors = 9, na.action = na.exclude)
 
 mcs_personal$masculinity <- factor(mcs_personal$masculinity, levels = c("Neutral", "Masculine", "Non-masculine"))
 
-personal_model <- lmer(capital ~ masculinity + smni + masculinity*smni +  (1|ID) + (1|story), data = mcs_personal)
+personal_model <- lmer(capital ~ masculinity + smni_mc + masculinity*smni_mc +  (1|ID) + (1|story), data = mcs_personal)
 
 summary(personal_model)
 
@@ -457,7 +458,7 @@ summary(personal_model)
 
 mcs_society$masculinity <- factor(mcs_society$masculinity, levels = c("Neutral", "Masculine", "Non-masculine"))
 
-society_model <- lmer(capital ~ masculinity + smni + masculinity*smni + (1|ID) + (1|story), data = mcs_society)
+society_model <- lmer(capital ~ masculinity + smni_mc + masculinity*smni_mc + (1|ID) + (1|story), data = mcs_society)
 
 summary(society_model)
 
