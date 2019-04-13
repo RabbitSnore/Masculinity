@@ -1,10 +1,9 @@
 ---
 title: "Study 3 - Decomposing the interaction"
 author: "Timothy Luke & Pär Stern"
-date: "January 23, 2019"
+date: "April 13, 2019"
 output: html_document
 ---
-
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = FALSE)
@@ -165,8 +164,8 @@ mccs_personal <- mccs_personal %>%
       scale(smni) <= -.75 ~ "-1 SD",
       scale(smni) > -.75 & scale(smni) <= -.25 ~ "-.5 SD",
       scale(smni) > -.25 & scale(smni) <= .25 ~ "0 SD",
-      scale(smni) > .25 & scale(smni) <= 1 ~ ".5 SD",
-      scale(smni) > 1 ~ "1 SD"
+      scale(smni) > .25 & scale(smni) <= .75 ~ ".5 SD",
+      scale(smni) > .75 ~ "1 SD"
     )
   )
 

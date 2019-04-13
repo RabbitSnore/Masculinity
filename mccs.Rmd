@@ -246,11 +246,13 @@ mccs_peer %>%
     ) +
   theme_classic()
 
-partial_capital_2 <- remef(peer_model, fix = c("crime_masculinity_mc", "crime_masculinity_mc:smni_mc"), ran = "all")
+
 ```
 
 #### Effect of SMNI on social capital (other effects partialed out)
 ```{r}
+partial_capital_2 <- remef(peer_model, fix = c("crime_masculinity_mc", "crime_masculinity_mc:smni_mc"), ran = "all")
+
 mccs_peer %>% 
   filter(!is.na(smni_mc)) %>%
   ggplot(.,
